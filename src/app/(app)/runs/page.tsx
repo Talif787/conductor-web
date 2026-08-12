@@ -10,6 +10,7 @@ import { cn, formatDateTime } from "@/lib/utils";
 
 export default function RunsPage() {
   const { data, isLoading, isError, error } = useRuns();
+  const runs = data?.items ?? [];
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -29,7 +30,7 @@ export default function RunsPage() {
           Could not load runs. {error instanceof Error ? error.message : ""}
         </Card>
       )}
-      {data && data.runs.length === 0 && (
+      {!isLoading && !isError && runs.length === 0 && (
         <Card className="flex flex-col items-center gap-3 p-12 text-center">
           <p className="text-sm text-muted-foreground">No runs yet. Start one to see it here.</p>
           <Link href="/runs/new" className={buttonVariants()}>
@@ -37,9 +38,9 @@ export default function RunsPage() {
           </Link>
         </Card>
       )}
-      {data && data.runs.length > 0 && (
+      {runs.length > 0 && (
         <Card className="divide-y divide-border">
-          {data.runs.map((run) => (
+          {runs.map((run) => (
             <Link
               key={run.id}
               href={`/runs/${run.id}`}
