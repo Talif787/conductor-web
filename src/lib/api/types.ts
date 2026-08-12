@@ -1,67 +1,30 @@
-// Types mirror the control-api DTOs exactly. Keep in sync with the backend.
+import type { z } from "zod";
+import type {
+  AuthTokensSchema,
+  MeSchema,
+  PagedRunsSchema,
+  RunExecutionSchema,
+  RunSchema,
+  StepExecutionSchema,
+  StepSchema,
+  ToolSchema,
+  WorkflowSchema,
+  WorkflowVersionSchema,
+  WorkflowVersionSummarySchema,
+} from "@/lib/api/schemas";
 
-export interface AuthTokens {
-  access_token: string;
-  refresh_token: string;
-  token_type: string;
-  expires_in: number;
-}
-
-export interface Me {
-  user_id: string;
-  tenant_id: string;
-  roles: string[];
-  permissions: string[];
-}
-
-export type RunStatus =
-  | "queued"
-  | "planning"
-  | "running"
-  | "paused"
-  | "awaiting_approval"
-  | "completed"
-  | "failed"
-  | "cancelled";
-
-export interface Run {
-  id: string;
-  status: RunStatus;
-  goal: string;
-  priority: string;
-  error?: string | null;
-  created_at: string;
-  updated_at: string;
-  workflow_id?: string | null;
-  workflow_version?: string | null;
-}
-
-export interface PagedRuns {
-  items: Run[];
-  next_cursor: string | null;
-}
-
-export interface StepExecution {
-  step_id: string;
-  tool_id: string;
-  position: number;
-  status: string;
-  output: Record<string, unknown> | null;
-  error: string | null;
-  started_at: string | null;
-  finished_at: string | null;
-  cost_usd: number;
-}
-
-export interface RunExecution {
-  run_id: string;
-  status: string;
-  error: string | null;
-  started_at: string;
-  finished_at: string | null;
-  total_cost_usd: number;
-  steps: StepExecution[];
-}
+export type AuthTokens = z.infer<typeof AuthTokensSchema>;
+export type Me = z.infer<typeof MeSchema>;
+export type Run = z.infer<typeof RunSchema>;
+export type RunStatus = string;
+export type PagedRuns = z.infer<typeof PagedRunsSchema>;
+export type StepExecution = z.infer<typeof StepExecutionSchema>;
+export type RunExecution = z.infer<typeof RunExecutionSchema>;
+export type Tool = z.infer<typeof ToolSchema>;
+export type Workflow = z.infer<typeof WorkflowSchema>;
+export type WorkflowVersionSummary = z.infer<typeof WorkflowVersionSummarySchema>;
+export type WorkflowVersion = z.infer<typeof WorkflowVersionSchema>;
+export type WorkflowStep = z.infer<typeof StepSchema>;
 
 export interface CreateRunInput {
   goal: string;
@@ -69,4 +32,13 @@ export interface CreateRunInput {
   parameters?: Record<string, unknown>;
   workflow_id?: string | null;
   workflow_version?: string | null;
+}
+
+export interface RegisterToolInput {
+  name: string;
+  kind: "builtin" | "http" | "mcp";
+  description?: string;
+  input_schema?: Record<string, unknown>;
+  output_schema?: Record<string, unknown>;
+  config?: Record<string, unknown>;
 }

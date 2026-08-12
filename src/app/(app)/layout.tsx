@@ -11,8 +11,8 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/runs", label: "Runs", icon: Activity, ready: true },
-  { href: "/workflows", label: "Workflows", icon: GitBranch, ready: false },
-  { href: "/tools", label: "Tools", icon: Wrench, ready: false },
+  { href: "/workflows", label: "Workflows", icon: GitBranch, ready: true },
+  { href: "/tools", label: "Tools", icon: Wrench, ready: true },
   { href: "/approvals", label: "Approvals", icon: ShieldCheck, ready: false },
   { href: "/insights", label: "Insights", icon: BarChart3, ready: false },
 ];
