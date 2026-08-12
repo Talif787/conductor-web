@@ -29,15 +29,15 @@ export interface Run {
   status: RunStatus;
   goal: string;
   priority: string;
-  error: string | null;
+  error?: string | null;
   created_at: string;
   updated_at: string;
-  workflow_id: string | null;
-  workflow_version: string | null;
+  workflow_id?: string | null;
+  workflow_version?: string | null;
 }
 
 export interface PagedRuns {
-  runs: Run[];
+  items: Run[];
   next_cursor: string | null;
 }
 
