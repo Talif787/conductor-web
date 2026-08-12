@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 22% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 22% 12%;
+  --muted: 220 16% 96%;
+  --muted-foreground: 220 9% 42%;
+  --border: 220 16% 90%;
+  --input: 220 16% 88%;
+  --ring: 222 60% 45%;
+  --primary: 222 47% 20%;
+  --primary-foreground: 0 0% 100%;
+  --accent: 221 70% 52%;
+  --accent-foreground: 0 0% 100%;
+  --destructive: 0 72% 46%;
+  --destructive-foreground: 0 0% 100%;
+  --radius: 0.625rem;
+
+  --status-queued: 220 9% 55%;
+  --status-planning: 262 60% 58%;
+  --status-running: 221 83% 55%;
+  --status-approval: 38 92% 48%;
+  --status-completed: 152 56% 40%;
+  --status-failed: 0 72% 51%;
+  --status-cancelled: 220 9% 46%;
+}
+
+.dark {
+  --background: 224 24% 8%;
+  --foreground: 220 20% 92%;
+  --card: 224 22% 11%;
+  --card-foreground: 220 20% 92%;
+  --muted: 223 18% 16%;
+  --muted-foreground: 220 12% 60%;
+  --border: 223 16% 20%;
+  --input: 223 16% 24%;
+  --ring: 221 83% 62%;
+  --primary: 220 20% 92%;
+  --primary-foreground: 224 24% 8%;
+  --accent: 221 83% 62%;
+  --accent-foreground: 224 24% 8%;
+  --destructive: 0 68% 56%;
+  --destructive-foreground: 0 0% 100%;
+
+  --status-queued: 220 10% 60%;
+  --status-planning: 262 65% 68%;
+  --status-running: 221 83% 66%;
+  --status-approval: 38 92% 58%;
+  --status-completed: 152 52% 50%;
+  --status-failed: 0 72% 62%;
+  --status-cancelled: 220 10% 52%;
+}
+
+* { border-color: hsl(var(--border)); }
+
+body {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
