@@ -49,7 +49,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           <div className="h-2 w-2 rounded-full bg-accent" />
           <span className="font-mono text-sm font-semibold tracking-tight">conductor</span>
         </div>
-        <nav className="flex flex-col gap-0.5 p-3">
+        <nav aria-label="Primary" className="flex flex-col gap-0.5 p-3">
           {NAV.map((item) => {
             const active = pathname.startsWith(item.href);
             const Icon = item.icon;
@@ -59,7 +59,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               !item.ready && "pointer-events-none opacity-50",
             );
             return item.ready ? (
-              <Link key={item.href} href={item.href} className={cls}>
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cls}
+                aria-current={active ? "page" : undefined}
+              >
                 <Icon className="h-4 w-4" /> {item.label}
               </Link>
             ) : (
