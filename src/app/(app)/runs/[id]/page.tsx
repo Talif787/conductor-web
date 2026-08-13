@@ -31,7 +31,8 @@ export default function RunDetailPage() {
     );
   }
 
-  const canExecute = run.status === "queued" && hasPermission("runs:execute");
+  const canExecute =
+    run.status === "queued" && Boolean(run.workflow_id) && hasPermission("runs:execute");
   const canCancel = !TERMINAL.has(run.status) && hasPermission("runs:cancel");
 
   return (
@@ -101,7 +102,11 @@ export default function RunDetailPage() {
         <CardContent>
           {!HAS_EXECUTION.has(run.status) && (
             <p className="text-sm text-muted-foreground">
-              This run has not executed yet. {canExecute ? "Press Execute to start it." : ""}
+              {!run.workflow_id
+                ? "This run has no workflow, so there is nothing to execute. Create a run against a published workflow to execute it."
+                : canExecute
+                  ? "This run has not executed yet. Press Execute to start it."
+                  : "This run has not executed yet."}
             </p>
           )}
           {execution.isLoading && <p className="text-sm text-muted-foreground">Loading steps…</p>}
@@ -126,14 +131,22 @@ function Timeline({
   if (steps.length === 0) return <p className="text-sm text-muted-foreground">No steps recorded.</p>;
   return (
     <ol className="relative flex flex-col gap-4 pl-5">
-      <span className="absolute left-[5px] top-1 h-[calc(100%-1rem)] w-px bg-border" aria-hidden />
-      {steps.map((step) => {
+      {steps.map((step, i) => {
+        const isLast = i === steps.length - 1;
         const completion =
           step.output && typeof step.output.completion === "string"
             ? (step.output.completion as string)
             : null;
         return (
           <li key={step.step_id} className="relative">
+            {/* connector runs from this dot to the next; the last step has none,
+                so the line ends at the final dot instead of overhanging */}
+            {!isLast && (
+              <span
+                className="absolute left-[-15px] top-[9px] h-[calc(100%+1rem)] w-px bg-border"
+                aria-hidden
+              />
+            )}
             <span
               className={cn(
                 "absolute -left-5 top-1 h-2.5 w-2.5 rounded-full ring-4 ring-card",

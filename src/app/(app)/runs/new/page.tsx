@@ -5,27 +5,39 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import Link from "next/link";
+import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Field } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { useCreateRun } from "@/hooks/use-runs";
+import { useWorkflows } from "@/hooks/use-workflows";
 import { ApiError } from "@/lib/api/problem";
-import { useState } from "react";
 
 const schema = z.object({
   goal: z.string().min(1, "Describe what this run should accomplish."),
   priority: z.enum(["low", "normal", "high"]),
   prompt: z.string().optional(),
-  workflowId: z.string().optional(),
-  workflowVersion: z.string().optional(),
+  // Encodes "workflowId:version" for a published version, or "" for none.
+  workflow: z.string().optional(),
 });
 type FormValues = z.infer<typeof schema>;
 
 export default function NewRunPage() {
   const router = useRouter();
   const createRun = useCreateRun();
+  const { data: workflows } = useWorkflows();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  // Only published versions are executable, so those are the only valid targets.
+  const publishedOptions = (workflows ?? []).flatMap((wf) =>
+    wf.versions
+      .filter((v) => v.status === "published")
+      .map((v) => ({ value: `${wf.id}:${v.version}`, label: `${wf.name} (v${v.version})` })),
+  );
+
   const {
     register,
     handleSubmit,
@@ -34,13 +46,20 @@ export default function NewRunPage() {
 
   const onSubmit = handleSubmit(async (values) => {
     setServerError(null);
+    let workflowId: string | null = null;
+    let workflowVersion: string | null = null;
+    if (values.workflow) {
+      const [id, version] = values.workflow.split(":");
+      workflowId = id;
+      workflowVersion = version;
+    }
     try {
       const run = await createRun.mutateAsync({
         goal: values.goal,
         priority: values.priority,
         parameters: values.prompt ? { prompt: values.prompt } : {},
-        workflow_id: values.workflowId || null,
-        workflow_version: values.workflowId ? values.workflowVersion || "1" : null,
+        workflow_id: workflowId,
+        workflow_version: workflowVersion,
       });
       router.push(`/runs/${run.id}`);
     } catch (err) {
@@ -66,26 +85,37 @@ export default function NewRunPage() {
               <Input placeholder="Summarize the quarterly report" {...register("goal")} />
             </Field>
             <Field label="Priority" error={errors.priority?.message}>
-              <select
-                className="h-9 rounded-md border border-input bg-transparent px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                {...register("priority")}
-              >
+              <Select {...register("priority")}>
                 <option value="low">Low</option>
                 <option value="normal">Normal</option>
                 <option value="high">High</option>
-              </select>
+              </Select>
             </Field>
-            <Field label="Prompt (optional)" hint="Passed to the run as parameters.prompt" error={errors.prompt?.message}>
+            <Field label="Prompt (optional)" hint="Passed to the run as parameters.prompt">
               <Input placeholder="summarize the quarterly report" {...register("prompt")} />
             </Field>
-            <div className="grid grid-cols-2 gap-3">
-              <Field label="Workflow ID (optional)" error={errors.workflowId?.message}>
-                <Input placeholder="uuid" className="font-mono" {...register("workflowId")} />
-              </Field>
-              <Field label="Version" error={errors.workflowVersion?.message}>
-                <Input placeholder="1" {...register("workflowVersion")} />
-              </Field>
-            </div>
+            <Field
+              label="Workflow"
+              hint="Only published workflows can be executed. A run without one is created but cannot execute."
+            >
+              <Select {...register("workflow")}>
+                <option value="">None (run will not be executable)</option>
+                {publishedOptions.map((o) => (
+                  <option key={o.value} value={o.value}>
+                    {o.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            {publishedOptions.length === 0 && (
+              <p className="-mt-2 text-xs text-muted-foreground">
+                No published workflows yet. Publish one on the{" "}
+                <Link href="/workflows" className="underline">
+                  Workflows
+                </Link>{" "}
+                page to make executable runs.
+              </p>
+            )}
             {serverError && <p className="text-sm text-destructive">{serverError}</p>}
             <Button type="submit" disabled={isSubmitting} className="mt-1 self-start">
               {isSubmitting ? "Creating…" : "Create run"}
@@ -94,26 +124,5 @@ export default function NewRunPage() {
         </CardContent>
       </Card>
     </div>
-  );
-}
-
-function Field({
-  label,
-  hint,
-  error,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  error?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="text-sm font-medium">{label}</span>
-      {children}
-      {hint && !error && <span className="text-xs text-muted-foreground">{hint}</span>}
-      {error && <span className="text-xs text-destructive">{error}</span>}
-    </label>
   );
 }
