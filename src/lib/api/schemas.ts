@@ -101,3 +101,15 @@ export const WorkflowVersionSchema = z.object({
   created_at: z.string(),
   published_at: z.string().nullable(),
 });
+
+export const ApprovalSchema = z.object({
+  id: z.string(),
+  run_id: z.string(),
+  reason: z.string(),
+  status: z.string(),
+  requested_at: z.string(),
+  decided_at: z.string().nullable(),
+  decided_by: z.string().nullable(),
+  decision_note: z.string().nullable(),
+});
+export const ApprovalListSchema = z.array(ApprovalSchema);

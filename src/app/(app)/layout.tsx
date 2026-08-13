@@ -13,7 +13,7 @@ const NAV = [
   { href: "/runs", label: "Runs", icon: Activity, ready: true },
   { href: "/workflows", label: "Workflows", icon: GitBranch, ready: true },
   { href: "/tools", label: "Tools", icon: Wrench, ready: true },
-  { href: "/approvals", label: "Approvals", icon: ShieldCheck, ready: false },
+  { href: "/approvals", label: "Approvals", icon: ShieldCheck, ready: true },
   { href: "/insights", label: "Insights", icon: BarChart3, ready: false },
 ];
 

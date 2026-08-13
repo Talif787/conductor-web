@@ -12,7 +12,7 @@ import { ApiError } from "@/lib/api/problem";
 import { cn, formatDateTime, formatUsd } from "@/lib/utils";
 
 const TERMINAL = new Set(["completed", "failed", "cancelled"]);
-const HAS_EXECUTION = new Set(["planning", "running", "paused", "awaiting_approval", "completed", "failed"]);
+const HAS_EXECUTION = new Set(["planning", "running", "paused", "completed", "failed"]);
 
 export default function RunDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -74,6 +74,18 @@ export default function RunDetailPage() {
       {executeRun.isError && (
         <Card className="mb-4 border-destructive/40 p-4 text-sm text-destructive">
           {executeRun.error instanceof ApiError ? executeRun.error.message : "Execution failed to start."}
+        </Card>
+      )}
+
+      {(run.status === "awaiting_approval" || executeRun.data?.kind === "pending") && (
+        <Card className="mb-4 border-status-approval/40 p-4">
+          <p className="text-sm font-medium">This run requires approval before it executes.</p>
+          {executeRun.data?.kind === "pending" && (
+            <p className="mt-1 text-sm text-muted-foreground">{executeRun.data.approval.reason}</p>
+          )}
+          <Link href="/approvals" className="mt-2 inline-block text-sm text-accent hover:underline">
+            Go to approvals
+          </Link>
         </Card>
       )}
 

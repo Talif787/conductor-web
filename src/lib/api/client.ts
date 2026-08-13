@@ -47,7 +47,14 @@ async function refreshSession(): Promise<boolean> {
   return refreshInFlight;
 }
 
-export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+// Core request: returns the HTTP status alongside the parsed body, so callers
+// that care about status (e.g. execute returning 200 executed vs 202 pending
+// approval) can branch on it. Handles auth, a single 401 refresh-and-retry,
+// and RFC7807 error bodies.
+export async function apiRaw(
+  path: string,
+  options: RequestOptions = {},
+): Promise<{ status: number; data: unknown }> {
   const headers: Record<string, string> = {};
   if (options.body !== undefined) headers["Content-Type"] = "application/json";
   if (!options.anonymous) {
@@ -63,7 +70,7 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
 
   if (res.status === 401 && !options.anonymous && !options._retried) {
     const refreshed = await refreshSession();
-    if (refreshed) return api<T>(path, { ...options, _retried: true });
+    if (refreshed) return apiRaw(path, { ...options, _retried: true });
     clearTokens();
   }
 
@@ -77,9 +84,14 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
     throw new ApiError(res.status, problem);
   }
 
-  if (res.status === 204) return undefined as T;
+  if (res.status === 204) return { status: 204, data: undefined };
   const text = await res.text();
-  return (text ? JSON.parse(text) : undefined) as T;
+  return { status: res.status, data: text ? JSON.parse(text) : undefined };
+}
+
+export async function api<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const { data } = await apiRaw(path, options);
+  return data as T;
 }
 
 // Fetch and validate against a Zod schema, so a response-shape mismatch throws
