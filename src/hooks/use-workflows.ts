@@ -24,6 +24,15 @@ export function useWorkflow(workflowId: string) {
   });
 }
 
+export function useWorkflowVersion(workflowId: string, version: number | undefined) {
+  return useQuery({
+    queryKey: ["workflows", workflowId, "version", version],
+    queryFn: () =>
+      apiParsed(`/workflows/${workflowId}/versions/${version}`, WorkflowVersionSchema),
+    enabled: Boolean(workflowId) && version !== undefined,
+  });
+}
+
 export function useCreateWorkflow() {
   const qc = useQueryClient();
   return useMutation({
