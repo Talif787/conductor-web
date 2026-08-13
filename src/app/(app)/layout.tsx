@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Activity, GitBranch, Wrench, ShieldCheck, BarChart3, Moon, Sun, LogOut, Command } from "lucide-react";
+import { Activity, GitBranch, Wrench, ShieldCheck, BarChart3, Moon, Sun, LogOut, Command, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CommandPalette, OPEN_EVENT } from "@/components/command-palette";
 import { useAuth } from "@/lib/auth/auth-provider";
@@ -93,6 +93,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
             <ThemeToggle />
             <span className="hidden text-sm text-muted-foreground sm:inline">{user.roles[0]}</span>
+            <Link
+              href="/settings"
+              aria-label="Settings"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
+            >
+              <Settings className="h-4 w-4" />
+            </Link>
             <Button variant="ghost" size="icon" onClick={() => logout()} aria-label="Sign out">
               <LogOut className="h-4 w-4" />
             </Button>
