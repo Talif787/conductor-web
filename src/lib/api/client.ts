@@ -81,3 +81,14 @@ export async function api<T>(path: string, options: RequestOptions = {}): Promis
   const text = await res.text();
   return (text ? JSON.parse(text) : undefined) as T;
 }
+
+// Fetch and validate against a Zod schema, so a response-shape mismatch throws
+// a clear error at the boundary instead of surfacing deep in a component.
+export async function apiParsed<T>(
+  path: string,
+  schema: { parse: (data: unknown) => T },
+  options: Parameters<typeof api>[1] = {},
+): Promise<T> {
+  const raw = await api<unknown>(path, options);
+  return schema.parse(raw);
+}
