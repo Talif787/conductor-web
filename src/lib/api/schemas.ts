@@ -113,3 +113,21 @@ export const ApprovalSchema = z.object({
   decision_note: z.string().nullable(),
 });
 export const ApprovalListSchema = z.array(ApprovalSchema);
+
+export const RunStatsSchema = z.object({
+  total: z.number(),
+  active: z.number(),
+  by_status: z.record(z.number()),
+});
+
+export const RunViewSchema = z.object({
+  run_id: z.string(),
+  tenant_id: z.string(),
+  status: z.string(),
+  goal: z.string(),
+  priority: z.string(),
+  created_at: z.string(),
+  updated_at: z.string(),
+  event_count: z.number(),
+});
+export const RunViewListSchema = z.array(RunViewSchema);

@@ -12,6 +12,8 @@ import type {
   WorkflowVersionSchema,
   WorkflowVersionSummarySchema,
   ApprovalSchema,
+  RunStatsSchema,
+  RunViewSchema,
 } from "@/lib/api/schemas";
 
 export type AuthTokens = z.infer<typeof AuthTokensSchema>;
@@ -27,6 +29,8 @@ export type WorkflowVersionSummary = z.infer<typeof WorkflowVersionSummarySchema
 export type WorkflowVersion = z.infer<typeof WorkflowVersionSchema>;
 export type WorkflowStep = z.infer<typeof StepSchema>;
 export type Approval = z.infer<typeof ApprovalSchema>;
+export type RunStats = z.infer<typeof RunStatsSchema>;
+export type RunView = z.infer<typeof RunViewSchema>;
 
 export type ExecuteResult =
   | { kind: "executed"; execution: RunExecution }
