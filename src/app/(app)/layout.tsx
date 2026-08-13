@@ -14,7 +14,7 @@ const NAV = [
   { href: "/workflows", label: "Workflows", icon: GitBranch, ready: true },
   { href: "/tools", label: "Tools", icon: Wrench, ready: true },
   { href: "/approvals", label: "Approvals", icon: ShieldCheck, ready: true },
-  { href: "/insights", label: "Insights", icon: BarChart3, ready: false },
+  { href: "/insights", label: "Insights", icon: BarChart3, ready: true },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
