@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,12 @@ import { Select } from "@/components/ui/select";
 import { StatusBadge } from "@/components/runs/status-badge";
 import { WorkflowDag } from "@/components/workflows/dag";
 import { useTools } from "@/hooks/use-tools";
-import { usePublishVersion, useSaveDraft, useWorkflow } from "@/hooks/use-workflows";
+import {
+  usePublishVersion,
+  useSaveDraft,
+  useWorkflow,
+  useWorkflowVersion,
+} from "@/hooks/use-workflows";
 import { ApiError } from "@/lib/api/problem";
 import type { WorkflowStep } from "@/lib/api/types";
 import { formatDateTime } from "@/lib/utils";
@@ -27,6 +32,14 @@ export default function WorkflowDetailPage() {
     () =>
       workflow?.versions
         .filter((v) => v.status === "draft")
+        .sort((a, b) => b.version - a.version)[0],
+    [workflow],
+  );
+
+  const latestPublished = useMemo(
+    () =>
+      workflow?.versions
+        .filter((v) => v.status === "published")
         .sort((a, b) => b.version - a.version)[0],
     [workflow],
   );
@@ -78,6 +91,10 @@ export default function WorkflowDetailPage() {
         </CardContent>
       </Card>
 
+      {latestPublished && (
+        <PublishedGraph workflowId={workflow.id} version={latestPublished.version} tools={tools} />
+      )}
+
       {draft ? (
         <DraftEditor
           workflowId={workflow.id}
@@ -86,11 +103,35 @@ export default function WorkflowDetailPage() {
         />
       ) : (
         <Card className="p-6 text-sm text-muted-foreground">
-          No draft version to edit. All versions are published. Creating a new draft from a
-          published version is coming in a later slice.
+          No draft version to edit. All versions are published; the published graph is shown above.
         </Card>
       )}
     </div>
+  );
+}
+
+function PublishedGraph({
+  workflowId,
+  version,
+  tools,
+}: {
+  workflowId: string;
+  version: number;
+  tools: { id: string; name: string }[];
+}) {
+  const { data, isLoading, isError } = useWorkflowVersion(workflowId, version);
+  const toolName = (tid: string) => tools.find((t) => t.id === tid)?.name ?? tid.slice(0, 8);
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Published graph (v{version})</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading && <p className="text-sm text-muted-foreground">Loading graph…</p>}
+        {isError && <p className="text-sm text-destructive">Could not load the published graph.</p>}
+        {data && <WorkflowDag steps={data.definition.steps} toolName={toolName} />}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -106,8 +147,19 @@ function DraftEditor({
   const [steps, setSteps] = useState<WorkflowStep[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [seeded, setSeeded] = useState(false);
+  const versionQuery = useWorkflowVersion(workflowId, version);
   const saveDraft = useSaveDraft(workflowId, version);
   const publish = usePublishVersion(workflowId, version);
+
+  // Load the saved draft definition once, so a reload repopulates the editor
+  // instead of starting empty. User edits after seeding are not clobbered.
+  useEffect(() => {
+    if (!seeded && versionQuery.data) {
+      setSteps(versionQuery.data.definition.steps ?? []);
+      setSeeded(true);
+    }
+  }, [seeded, versionQuery.data]);
 
   const toolName = (tid: string) => tools.find((t) => t.id === tid)?.name ?? tid.slice(0, 8);
 
@@ -265,10 +317,11 @@ function DraftEditor({
               {publish.isPending ? "Publishing…" : "Publish v" + version}
             </Button>
           </div>
+          {versionQuery.isLoading && !seeded && (
+            <p className="text-sm text-muted-foreground">Loading saved steps…</p>
+          )}
           <p className="text-xs text-muted-foreground">
-            Note: the editor starts empty on load. The API has no endpoint to read a version&apos;s
-            saved steps, so a previously saved draft is not repopulated here yet. Save writes the
-            full definition; publish freezes it.
+            Steps load from the saved draft. Save writes the full definition; publish freezes it.
           </p>
         </CardContent>
       </Card>
