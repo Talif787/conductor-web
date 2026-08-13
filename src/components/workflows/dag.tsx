@@ -68,14 +68,21 @@ export function WorkflowDag({
 
   if (steps.length === 0) {
     return (
-      <div className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground">
+      <div
+        role="status"
+        className="flex h-40 items-center justify-center rounded-lg border border-dashed border-border text-sm text-muted-foreground"
+      >
         Add steps to see the graph.
       </div>
     );
   }
 
   return (
-    <div className="overflow-auto rounded-lg border border-border bg-muted/20 p-2">
+    <div
+      role="img"
+      aria-label={`Workflow graph with ${steps.length} step${steps.length === 1 ? "" : "s"}`}
+      className="overflow-auto rounded-lg border border-border bg-muted/20 p-2"
+    >
       <div className="relative" style={{ width, height }}>
         <svg width={width} height={height} className="absolute inset-0" aria-hidden>
           {placed.flatMap(({ step }) =>
