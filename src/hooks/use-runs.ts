@@ -1,13 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { api, apiParsed } from "@/lib/api/client";
+import { apiParsed, apiRaw } from "@/lib/api/client";
 import {
+  ApprovalSchema,
   PagedRunsSchema,
   RunExecutionSchema,
   RunSchema,
 } from "@/lib/api/schemas";
-import type { CreateRunInput } from "@/lib/api/types";
+import type { CreateRunInput, ExecuteResult } from "@/lib/api/types";
 
 export function useRuns() {
   return useQuery({
@@ -44,11 +45,18 @@ export function useCreateRun() {
 
 export function useExecuteRun(runId: string) {
   const qc = useQueryClient();
-  return useMutation({
-    mutationFn: () => api<unknown>(`/runs/${runId}/execute`, { method: "POST" }),
+  return useMutation<ExecuteResult, Error>({
+    mutationFn: async () => {
+      const { status, data } = await apiRaw(`/runs/${runId}/execute`, { method: "POST" });
+      if (status === 202) {
+        return { kind: "pending", approval: ApprovalSchema.parse(data) };
+      }
+      return { kind: "executed", execution: RunExecutionSchema.parse(data) };
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["runs", runId] });
       qc.invalidateQueries({ queryKey: ["runs", runId, "execution"] });
+      qc.invalidateQueries({ queryKey: ["approvals"] });
     },
   });
 }
