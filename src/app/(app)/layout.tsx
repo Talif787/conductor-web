@@ -96,6 +96,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link
               href="/settings"
               aria-label="Settings"
+              title="Settings"
               className="inline-flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground hover:bg-muted"
             >
               <Settings className="h-4 w-4" />

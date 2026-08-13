@@ -131,3 +131,10 @@ export const RunViewSchema = z.object({
   event_count: z.number(),
 });
 export const RunViewListSchema = z.array(RunViewSchema);
+
+export const MemberSchema = z.object({
+  user_id: z.string(),
+  email: z.string(),
+  roles: z.array(z.string()),
+});
+export const MemberListSchema = z.array(MemberSchema);
