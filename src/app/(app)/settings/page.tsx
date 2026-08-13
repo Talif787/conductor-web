@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { useMembers } from "@/hooks/use-members";
 import { cn } from "@/lib/utils";
 
 // Friendly labels for the RBAC permission strings the token carries.
@@ -30,7 +31,7 @@ const RESOURCE_LABEL: Record<string, string> = {
 };
 
 export default function SettingsPage() {
-  const { user } = useAuth();
+  const { user, hasPermission } = useAuth();
 
   if (!user) return null;
 
@@ -75,6 +76,8 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
+      {hasPermission("members:read") && <MembersCard />}
+
       <Card className="mb-6">
         <CardHeader>
           <CardTitle>Permissions</CardTitle>
@@ -114,6 +117,50 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function MembersCard() {
+  const { data, isLoading, isError } = useMembers();
+  const members = data ?? [];
+  return (
+    <Card className="mb-6">
+      <CardHeader>
+        <CardTitle>Members</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {isLoading && <p className="text-sm text-muted-foreground">Loading members…</p>}
+        {isError && <p className="text-sm text-destructive">Could not load members.</p>}
+        {!isLoading && !isError && members.length === 0 && (
+          <p className="text-sm text-muted-foreground">No members found.</p>
+        )}
+        {members.length > 0 && (
+          <div className="divide-y divide-border">
+            {members.map((m) => (
+              <div
+                key={m.user_id}
+                className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
+              >
+                <span className="min-w-0 flex-1 truncate text-sm">{m.email}</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {m.roles.map((r) => (
+                    <span
+                      key={r}
+                      className="inline-flex items-center rounded-full border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium capitalize"
+                    >
+                      {r}
+                    </span>
+                  ))}
+                </div>
+                <span className="hidden font-mono text-xs text-muted-foreground sm:inline">
+                  {m.user_id.slice(0, 8)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
