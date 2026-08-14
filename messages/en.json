@@ -1,0 +1,17 @@
+{
+  "login": {
+    "brand": "Conductor",
+    "signIn": "Sign in",
+    "createWorkspace": "Create your workspace",
+    "workspaceName": "Workspace name",
+    "workspacePlaceholder": "Acme",
+    "email": "Email",
+    "emailPlaceholder": "you@company.com",
+    "password": "Password",
+    "submitSignIn": "Sign in",
+    "submitCreate": "Create workspace",
+    "toggleToRegister": "New here? Create a workspace",
+    "toggleToLogin": "Have an account? Sign in",
+    "genericError": "Something went wrong. Try again."
+  }
+}
