@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { useAuth } from "@/lib/auth/auth-provider";
-import { useMembers } from "@/hooks/use-members";
+import { useAddMember, useChangeMemberRole, useMembers } from "@/hooks/use-members";
+import { ApiError } from "@/lib/api/problem";
 import { cn } from "@/lib/utils";
 
 // Friendly labels for the RBAC permission strings the token carries.
@@ -76,7 +80,9 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {hasPermission("members:read") && <MembersCard />}
+      {hasPermission("members:read") && (
+        <MembersCard canWrite={hasPermission("members:write")} />
+      )}
 
       <Card className="mb-6">
         <CardHeader>
@@ -120,7 +126,7 @@ export default function SettingsPage() {
   );
 }
 
-function MembersCard() {
+function MembersCard({ canWrite }: { canWrite: boolean }) {
   const { data, isLoading, isError } = useMembers();
   const members = data ?? [];
   return (
@@ -128,7 +134,7 @@ function MembersCard() {
       <CardHeader>
         <CardTitle>Members</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex flex-col gap-4">
         {isLoading && <p className="text-sm text-muted-foreground">Loading members…</p>}
         {isError && <p className="text-sm text-destructive">Could not load members.</p>}
         {!isLoading && !isError && members.length === 0 && (
@@ -137,30 +143,120 @@ function MembersCard() {
         {members.length > 0 && (
           <div className="divide-y divide-border">
             {members.map((m) => (
-              <div
-                key={m.user_id}
-                className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0"
-              >
-                <span className="min-w-0 flex-1 truncate text-sm">{m.email}</span>
-                <div className="flex flex-wrap gap-1.5">
-                  {m.roles.map((r) => (
-                    <span
-                      key={r}
-                      className="inline-flex items-center rounded-full border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium capitalize"
-                    >
-                      {r}
-                    </span>
-                  ))}
-                </div>
-                <span className="hidden font-mono text-xs text-muted-foreground sm:inline">
-                  {m.user_id.slice(0, 8)}
-                </span>
-              </div>
+              <MemberRow key={m.user_id} member={m} canWrite={canWrite} />
             ))}
           </div>
         )}
+        {canWrite && <AddMemberForm />}
       </CardContent>
     </Card>
+  );
+}
+
+function MemberRow({
+  member,
+  canWrite,
+}: {
+  member: { user_id: string; email: string; roles: string[] };
+  canWrite: boolean;
+}) {
+  const changeRole = useChangeMemberRole();
+  const isOwner = member.roles.includes("owner");
+  const primaryRole = member.roles[0] ?? "viewer";
+  return (
+    <div className="flex flex-wrap items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+      <span className="min-w-0 flex-1 truncate text-sm">{member.email}</span>
+      {canWrite && !isOwner ? (
+        <Select
+          aria-label={`Role for ${member.email}`}
+          value={primaryRole}
+          disabled={changeRole.isPending}
+          onChange={(e) => changeRole.mutate({ userId: member.user_id, role: e.target.value })}
+          className="w-36"
+        >
+                  <option value="admin">Admin</option>
+                  <option value="author">Author</option>
+                  <option value="operator">Operator</option>
+                  <option value="viewer">Viewer</option>
+        </Select>
+      ) : (
+        <span className="inline-flex items-center rounded-full border border-border bg-muted/40 px-2.5 py-0.5 text-xs font-medium capitalize">
+          {primaryRole}
+        </span>
+      )}
+      <span className="hidden font-mono text-xs text-muted-foreground sm:inline">
+        {member.user_id.slice(0, 8)}
+      </span>
+      {changeRole.isError && (
+        <span className="w-full text-xs text-destructive">
+          {changeRole.error instanceof ApiError ? changeRole.error.message : "Could not change role."}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function AddMemberForm() {
+  const addMember = useAddMember();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState("viewer");
+  const [error, setError] = useState<string | null>(null);
+
+  const submit = async () => {
+    setError(null);
+    try {
+      await addMember.mutateAsync({ email, password, role });
+      setEmail("");
+      setPassword("");
+      setRole("viewer");
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Could not add member.");
+    }
+  };
+
+  return (
+    <div className="rounded-lg border border-border p-3">
+      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+        Add member
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          placeholder="email@company.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          aria-label="New member email"
+        />
+        <Input
+          type="password"
+          placeholder="temp password (8+ chars)"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          aria-label="Temporary password"
+        />
+        <Select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          aria-label="New member role"
+          className="sm:w-36"
+        >
+                  <option value="admin">Admin</option>
+                  <option value="author">Author</option>
+                  <option value="operator">Operator</option>
+                  <option value="viewer">Viewer</option>
+        </Select>
+        <Button
+          onClick={submit}
+          disabled={addMember.isPending || !email || password.length < 8}
+        >
+          {addMember.isPending ? "Adding…" : "Add"}
+        </Button>
+      </div>
+      <p className="mt-2 text-xs text-muted-foreground">
+        The member signs in with this temporary password.
+      </p>
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
+    </div>
   );
 }
 
