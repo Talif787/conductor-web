@@ -5,3 +5,7 @@
 next-env.d.ts
 .env.local
 *.tsbuildinfo
+
+# playwright
+/test-results/
+/playwright-report/
