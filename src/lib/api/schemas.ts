@@ -118,6 +118,8 @@ export const RunStatsSchema = z.object({
   total: z.number(),
   active: z.number(),
   by_status: z.record(z.number()),
+  // Defaulted so a backend without the cost rollup still parses.
+  total_cost_usd: z.number().default(0),
 });
 
 export const RunViewSchema = z.object({

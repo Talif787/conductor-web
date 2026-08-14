@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/runs/status-badge";
 import { useRecentRunViews, useRunStats } from "@/hooks/use-stats";
-import { cn, formatDateTime } from "@/lib/utils";
+import { cn, formatDateTime, formatUsd } from "@/lib/utils";
 
 // Order and color for the status breakdown, aligned with the run status tokens.
 const STATUS_ORDER = [
@@ -66,6 +66,18 @@ export default function InsightsPage() {
         />
         <Metric label="Failed" value={stats.data?.by_status.failed ?? 0} loading={stats.isLoading} />
       </div>
+
+      {stats.data && (
+        <Card className="mb-6 p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Total cost</p>
+          <p className="mt-1 font-mono text-2xl font-semibold">
+            {formatUsd(stats.data.total_cost_usd)}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Aggregate LLM spend across this workspace.
+          </p>
+        </Card>
+      )}
 
       {stats.data && stats.data.total > 0 && (
         <Card className="mb-6">
