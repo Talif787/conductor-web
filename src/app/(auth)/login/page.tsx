@@ -9,7 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ApiError } from "@/lib/api/problem";
+import { useTranslations } from "next-intl";
 import { useAuth } from "@/lib/auth/auth-provider";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 
 const loginSchema = z.object({
   email: z.string().email("Enter a valid email."),
@@ -23,6 +25,7 @@ type FormValues = z.infer<typeof registerSchema>;
 export default function LoginPage() {
   const router = useRouter();
   const { user, loading, login, register: registerTenant } = useAuth();
+  const t = useTranslations("login");
   const [mode, setMode] = useState<"login" | "register">("login");
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -44,7 +47,7 @@ export default function LoginPage() {
       else await registerTenant(values.tenantName, values.email, values.password);
       router.replace("/runs");
     } catch (err) {
-      setServerError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setServerError(err instanceof ApiError ? err.message : t("genericError"));
     }
   });
 
@@ -53,21 +56,26 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <div className="mb-1 font-mono text-xs uppercase tracking-widest text-muted-foreground">
-            Conductor
+            {t("brand")}
           </div>
-          <CardTitle>{mode === "login" ? "Sign in" : "Create your workspace"}</CardTitle>
+          <CardTitle>{mode === "login" ? t("signIn") : t("createWorkspace")}</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={onSubmit} className="flex flex-col gap-3" noValidate>
             {mode === "register" && (
-              <Field label="Workspace name" error={errors.tenantName?.message}>
-                <Input placeholder="Acme" {...register("tenantName")} />
+              <Field label={t("workspaceName")} error={errors.tenantName?.message}>
+                <Input placeholder={t("workspacePlaceholder")} {...register("tenantName")} />
               </Field>
             )}
-            <Field label="Email" error={errors.email?.message}>
-              <Input type="email" autoComplete="email" placeholder="you@company.com" {...register("email")} />
+            <Field label={t("email")} error={errors.email?.message}>
+              <Input
+                type="email"
+                autoComplete="email"
+                placeholder={t("emailPlaceholder")}
+                {...register("email")}
+              />
             </Field>
-            <Field label="Password" error={errors.password?.message}>
+            <Field label={t("password")} error={errors.password?.message}>
               <Input
                 type="password"
                 autoComplete={mode === "login" ? "current-password" : "new-password"}
@@ -76,7 +84,7 @@ export default function LoginPage() {
             </Field>
             {serverError && <p className="text-sm text-destructive">{serverError}</p>}
             <Button type="submit" disabled={isSubmitting} className="mt-1">
-              {mode === "login" ? "Sign in" : "Create workspace"}
+              {mode === "login" ? t("submitSignIn") : t("submitCreate")}
             </Button>
           </form>
           <button
@@ -87,8 +95,9 @@ export default function LoginPage() {
             }}
             className="mt-4 w-full text-center text-sm text-muted-foreground hover:text-foreground"
           >
-            {mode === "login" ? "New here? Create a workspace" : "Have an account? Sign in"}
+            {mode === "login" ? t("toggleToRegister") : t("toggleToLogin")}
           </button>
+          <LocaleSwitcher />
         </CardContent>
       </Card>
     </main>

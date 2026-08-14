@@ -1,0 +1,17 @@
+{
+  "login": {
+    "brand": "Conductor",
+    "signIn": "Iniciar sesión",
+    "createWorkspace": "Crea tu espacio de trabajo",
+    "workspaceName": "Nombre del espacio",
+    "workspacePlaceholder": "Acme",
+    "email": "Correo electrónico",
+    "emailPlaceholder": "tu@empresa.com",
+    "password": "Contraseña",
+    "submitSignIn": "Iniciar sesión",
+    "submitCreate": "Crear espacio",
+    "toggleToRegister": "¿Nuevo aquí? Crea un espacio de trabajo",
+    "toggleToLogin": "¿Ya tienes una cuenta? Inicia sesión",
+    "genericError": "Algo salió mal. Inténtalo de nuevo."
+  }
+}
